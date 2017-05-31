@@ -66,10 +66,21 @@ public class Main {
     private List<Data> graphs = new ArrayList<>();
 
     public static void main(String[] args) {
+        Main main = new Main();
+
+        try {
+
+            main.addGraphs();
+            main.results();
+            main.printToConsole();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
     private void readCity() throws IOException {
+        System.out.println("Enter number of cities: ");
         int numberOfCity = Integer.parseInt(reader.readLine());
 
         for (int city = 0; city < numberOfCity; city++) {
@@ -77,16 +88,20 @@ public class Main {
         }
 
         for (int city = 0; city < numberOfCity; city++) {
+            System.out.println("Enter a name of city: ");
             data.cities.get(city).setName(reader.readLine());
             readEdges(city);
         }
     }
 
     private void readEdges(int fromCity) throws IOException {
+        System.out.println("Enter a number of neighbours: ");
         int p = Integer.parseInt(reader.readLine());
 
         for (int i = 0; i < p; i++) {
+            System.out.println("Enter a number of edges: ");
             int toCity = Integer.parseInt(reader.readLine());
+            System.out.println("Enter a cost: ");
             int cost = Integer.parseInt(reader.readLine());
 
             Edge edge = new Edge(data.cities.get(fromCity), data.cities.get(toCity - 1), cost);
@@ -95,9 +110,12 @@ public class Main {
     }
 
     private void readRutes() throws IOException {
+        System.out.println("Enter the number of paths to find: ");
         int r = Integer.parseInt(reader.readLine());
         for (int i = 0; i < r; i++) {
+            System.out.println("From city: ");
             String fromCity = reader.readLine();
+            System.out.println("To city: ");
             String toCity = reader.readLine();
             Node cityFrom = null;
             Node cityTo = null;
@@ -122,6 +140,7 @@ public class Main {
     }
 
     private void addGraphs() throws IOException {
+        System.out.println("Enter number of graphs: ");
         int s = Integer.parseInt(reader.readLine());
         for (int i = 0; i < s; i++) {
             graphs.add(read());
@@ -130,8 +149,27 @@ public class Main {
     }
 
     private void results() {
-        for (Data graph : graphs) {
 
+        for (Data graph : graphs) {
+            Solution solution = new Solution(data.cities, data.lines);
+            for (int i = 0; i < data.rutes.size(); i++) {
+                solution.getShortestDistance(data.rutes.get(i));
+                data.listPath.add(solution.getShortestPath(data.rutes.get(i)));
+            }
+        }
+    }
+
+    public void printToConsole() {
+        for (Data graph : graphs) {
+            System.out.println("------------------------------");
+            for (int i = 0; i < data.rutes.size(); i++) {
+                System.out.println(data.rutes.get(i).getWeightNode());
+            }
+
+//            System.out.println(data.cities);
+//            System.out.println(data.lines);
+//            System.out.println(data.rutes);
+//            System.out.println(data.listPath);
         }
     }
 }
@@ -140,12 +178,36 @@ class Data {
     List<Node> cities = new ArrayList<>();
     List<Edge> lines = new ArrayList<>();
     Map<Integer, Edge> rutes = new HashMap<>();
+    List<List<Node>> listPath = new ArrayList<>();
 }
-
 class Solution {
+    /**
+     * A 2-dimensional matrix is an adjacency matrix. At each step in the
+     * algorithm, D[i][j] is the shortest path from i to j using intermediate
+     * vertices {1..k−1}. All weights of paths is initialized to
+     * <code>initializeWeight(final Node[] nodes, final Edge[] edges) </code>
+     * method.
+     */
     private final int[][] distance;
+    /**
+     * A 2-dimensional matrix is an antecedence matrix. At each step in the
+     * algorithm, P[i][j] is defined as the peak prior to the top of j on the
+     * shortest path from vertex i to vertex j with intermediate vertices in the
+     * set {1, 2, ..., k}
+     */
     private final Node[][] p;
-
+    /**
+     * Create an instance of this class by describing the graph upon which it
+     * will operate. <p> Note
+     * <code>Node.id</code> must contain the index of the node in the
+     * <code>nodes</code> parameter. Thus
+     * <code>Node[1].id</code> must equal one. <p> On small computers the
+     * practical maximum graph size with a 4-byte Node is about 10,000, at which
+     * point the data size of an instance begins to exceed 1,5 GB.
+     *
+     * @param nodes array of Node; must be completely populated
+     * @param edges array of Edge, completely populated; order is not important
+     */
     public Solution(final Node[] nodes, final Edge[] edges) {
         final int maxNodes = 10_000;
 
@@ -170,6 +232,18 @@ class Solution {
         this(nodes.toArray(new Node[0]), edges.toArray(new Edge[0]));
     }
 
+    /**
+     * Determines the length of the shortest path from vertex A (source) to
+     * vertex B (target), calculated by summing the weights of the edges
+     * traversed. <p> Note that distance, like path, is not commutative. That
+     * is, distance(A,B) is not necessarily equal to distance(B,A).
+     *
+     * @param source Start Node
+     * @param target End Node
+     * @return The path length as the sum of the weights of the edges traversed,
+     * or
+     * <code>Integer.MAX_VALUE</code> if there is no path
+     */
     public int getShortestDistance(final Node source, final Node target) {
         return distance[source.id][target.id];
     }
@@ -195,6 +269,15 @@ class Solution {
         return weight;
     }
 
+    /**
+     * This method constructs path from vertex
+     * <code>source</code> to vertex
+     * <code>target</code>.
+     *
+     * @param source the start vertex
+     * @param target the end vertex
+     * @return A List (ordered Collection) of Node, possibly empty
+     */
     private List<Node> getIntermediatePath(final Node source, final Node target) {
         if (p[source.id][target.id] == null) {
             return new ArrayList<Node>();
@@ -208,6 +291,17 @@ class Solution {
         return path;
     }
 
+    /**
+     * Describes the shortest path from vertex A (source) to vertex B (target)
+     * by returning a collection of the vertices traversed, in the order
+     * traversed. If there is no such path an empty collection is returned. <p>
+     * Note that because each Edge applies only to one direction of traverse,
+     * the path from A to B may not be the same as the path from B to A.
+     *
+     * @param source the start vertex
+     * @param target the end vertex
+     * @return A List (ordered Collection) of Node, possibly empty
+     */
     public List<Node> getShortestPath(final Node source, final Node target) {
 
         if (distance[source.id][target.id] == Integer.MAX_VALUE) {

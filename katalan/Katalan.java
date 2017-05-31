@@ -1,4 +1,4 @@
-/**
+package katalan; /**
  * Created by Ps1X on 30.05.2017.
  */
 /**

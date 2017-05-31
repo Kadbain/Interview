@@ -6,7 +6,13 @@ package city_line;
 public class Node {
     final int id;
     private String name;
-
+    /**
+     * Constructs a Node object with the specified initial identifier
+     * <code>id</code> and <code>name</code> of the graph vertex.
+     *
+     * @param id number of the graph vertex
+     * @param name the string name of the graph vertices
+     */
     public Node(final int id, final String name) {
         this.id = id;
         this.name = name;
